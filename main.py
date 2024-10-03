@@ -1,35 +1,38 @@
 import random
 from fastapi import FastAPI, WebSocket
-from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import json
-import asyncio
-import time
 import os
 import pandas as pd
-from datetime import datetime, timedelta
+import asyncio
+import json
 
-
-tm = time.time()
 app = FastAPI()
 
+# CORS settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins, you can restrict this to specific URLs if needed
+    allow_origins=["*"],  # Allows all origins
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
+    allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
 
+leaderboard_file = "leaderboard.csv"
+all_time_leaderboard = pd.DataFrame(columns=["name", "score"])
+
+# Ensure leaderboard file exists
+if not os.path.exists(leaderboard_file):
+    pd.DataFrame(columns=["name", "score"]).to_csv(leaderboard_file, index=False)
+else:
+    all_time_leaderboard = pd.read_csv(leaderboard_file)
+
 @app.get('/leaderboard')
 async def send_leaderboard():
-    data = {
-        "all_time": all_time_leaderboard.to_dict(orient="records"), 
-        "weekly": weekly_leaderboard.to_dict(orient="records"), 
-        "daily": daily_leaderboard.to_dict(orient="records")
-    }
-    return JSONResponse(content=data)
+    # Load the leaderboard and return top 10 players
+    leaderboard_df = pd.read_csv(leaderboard_file)
+    top_10 = leaderboard_df.sort_values(by="score", ascending=False).head(10).to_dict(orient="records")
+    return JSONResponse(content={"all_time": top_10})
 
 # Initialize global variables
 players = {}
@@ -38,19 +41,6 @@ enemies = [
     {"x": 400, "y": 400, "dx": -3, "dy": -3},
     {"x": 300, "y": 300, "dx": -2, "dy": -2}
 ]
-
-leaderboard_file = "leaderboard.csv"
-all_time_leaderboard = pd.DataFrame(columns=["name", "score"])
-weekly_leaderboard = pd.DataFrame(columns=["name", "score"])
-daily_leaderboard = pd.DataFrame(columns=["name", "score"])
-
-# Setup the reset times
-weekly_reset_date = datetime(2024, 9, 25)
-daily_reset_time = datetime.combine(datetime.now(), datetime.min.time()) + timedelta(hours=12)
-
-# Ensure leaderboard file exists
-if not os.path.exists(leaderboard_file):
-    pd.DataFrame(columns=["name", "score", "type"]).to_csv(leaderboard_file, index=False)
 
 # Helper functions
 def random_color():
@@ -71,28 +61,9 @@ async def move_enemies():
         await broadcast_positions()
         await asyncio.sleep(0.016)
 
-async def reset_leaderboards():
-    global weekly_leaderboard, daily_leaderboard, weekly_reset_date, daily_reset_time
-
-    while True:
-        now = datetime.now()
-
-        # Reset weekly leaderboard if needed
-        if now >= weekly_reset_date:
-            weekly_leaderboard = pd.DataFrame(columns=["name", "score"])
-            weekly_reset_date += timedelta(weeks=1)  # Schedule next reset
-
-        # Reset daily leaderboard if needed
-        if now >= daily_reset_time:
-            daily_leaderboard = pd.DataFrame(columns=["name", "score"])
-            daily_reset_time = datetime.combine(now, datetime.min.time()) + timedelta(hours=12)  # Next reset at 12:00 PM
-
-        await asyncio.sleep(60)  # Check once a minute
-
 @app.websocket("/ws/{player_name}")
 async def websocket_endpoint(websocket: WebSocket, player_name: str):
     await websocket.accept()
-
     player_id = id(websocket)
     players[player_id] = {
         "x": 100,
@@ -103,7 +74,6 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
         "score": 0,
         "websocket": websocket
     }
-
     asyncio.create_task(update_score(player_id))
 
     await send_initial_positions(websocket)
@@ -123,7 +93,6 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
                 players[player_id]["y"] += 5
 
             if check_collision(players[player_id]):
-                # Save player score and update leaderboards
                 save_score(player_name, players[player_id]["score"])
                 del players[player_id]
 
@@ -136,7 +105,6 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
     except Exception as e:
         print(f"Error: {e}")
         if player_id in players:
-            # Save player score and update leaderboards
             save_score(players[player_id]["name"], players[player_id]["score"])
             del players[player_id]
         await websocket.close()
@@ -145,21 +113,6 @@ async def update_score(player_id):
     while player_id in players:
         players[player_id]["score"] += 1
         await asyncio.sleep(1)
-
-async def spawn_enemies():
-    while True:
-        print(len(players))
-        if len(players) > 0:
-            enemies.append({
-                "x": random.randint(100, 500),
-                "y": random.randint(100, 500),
-                "dx": random.randint(-3, 3),
-                "dy": random.randint(-3, 3)
-            })
-            print(f"Enemy spawned. Total enemies: {len(enemies)}")
-        elif len(enemies) > 2:
-            del enemies[3:]
-        await asyncio.sleep(10)
 
 async def send_initial_positions(websocket: WebSocket):
     safe_players = [
@@ -191,36 +144,36 @@ def check_collision(player):
             return True
     return False
 
+async def spawn_enemies():
+    while True:
+        print(len(players))
+        if len(players) > 0:
+            enemies.append({
+                "x": random.randint(100, 500),
+                "y": random.randint(100, 500),
+                "dx": random.randint(-3, 3),
+                "dy": random.randint(-3, 3)
+            })
+            print(f"Enemy spawned. Total enemies: {len(enemies)}")
+        elif len(enemies) > 2:
+            del enemies[3:]
+        await asyncio.sleep(10)
+
 def save_score(name, score):
-    global all_time_leaderboard, weekly_leaderboard, daily_leaderboard
+    global all_time_leaderboard
 
-    # Update leaderboards
-    all_time_leaderboard = update_leaderboard(all_time_leaderboard, name, score)
-    weekly_leaderboard = update_leaderboard(weekly_leaderboard, name, score)
-    daily_leaderboard = update_leaderboard(daily_leaderboard, name, score)
-
-    # Save to CSV
-    leaderboard = pd.DataFrame({"name": [name], "score": [score], "type": ["all-time"]})
-    if os.path.exists(leaderboard_file):
-        leaderboard.to_csv(leaderboard_file, mode='a', header=False, index=False)
+    leaderboard_df = pd.read_csv(leaderboard_file)
+    if name in leaderboard_df['name'].values:
+        leaderboard_df.loc[leaderboard_df['name'] == name, 'score'] = max(leaderboard_df.loc[leaderboard_df['name'] == name, 'score'], score)
     else:
-        leaderboard.to_csv(leaderboard_file, index=False)
+        leaderboard_df = leaderboard_df.append({"name": name, "score": score}, ignore_index=True)
 
-def update_leaderboard(leaderboard, name, score):
-    if name in leaderboard['name'].values:
-        leaderboard.loc[leaderboard['name'] == name, 'score'] = max(leaderboard.loc[leaderboard['name'] == name, 'score'].values[0], score)
-    else:
-        leaderboard = leaderboard.append({"name": name, "score": score}, ignore_index=True)
-    
-    return leaderboard.sort_values(by="score", ascending=False).head(3)
+    leaderboard_df.to_csv(leaderboard_file, index=False)
 
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(move_enemies())
     asyncio.create_task(spawn_enemies())
-    asyncio.create_task(reset_leaderboards())
-
-
 
 if __name__ == "__main__":
     import uvicorn
