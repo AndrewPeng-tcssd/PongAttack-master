@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PongAttack - Leaderboards</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 5%;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 300px;
+            margin: 10px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ccc;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        #joinGame {
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #joinGame:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>PongAttack Leaderboards</h1>
+
+    <h2>All-Time Leaderboard</h2>
+    <table id="all-time-leaderboard">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- All-time leaderboard entries will be populated here -->
+        </tbody>
+    </table>
+
+    <button id="joinGame">Join Game</button>
+
+    <script>
+        async function fetchLeaderboards() {
+            const response = await fetch('http://127.0.0.1:8000/leaderboard');  // Fetch leaderboard from FastAPI
+            const data = await response.json();
+
+            updateLeaderboard('all-time-leaderboard', data.all_time);
+        }
+
+        function updateLeaderboard(elementId, leaderboardData) {
+            const leaderboardBody = document.getElementById(elementId).querySelector('tbody');
+            leaderboardBody.innerHTML = '';  // Clear existing entries
+
+            leaderboardData.forEach(player => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${player.name}</td><td>${player.score}</td>`;
+                leaderboardBody.appendChild(row);
+            });
+        }
+
+        // Fetch leaderboards when the page loads
+        fetchLeaderboards();
+
+        // Reload leaderboards every 30 seconds
+        setInterval(fetchLeaderboards, 30000);
+
+        // Handle the Join Game button
+        document.getElementById('joinGame').addEventListener('click', function() {
+            const playerName = prompt("Enter your name:");
+            if (playerName) {
+                // Redirect to the game page with the player's name in the query string
+                window.location.href = `game.html?name=${encodeURIComponent(playerName)}`;
+            }
+        });
+    </script>
+</body>
+</html>

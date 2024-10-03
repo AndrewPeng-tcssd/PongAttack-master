@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PongAttack</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: row;  /* Arrange canvas and leaderboard side by side */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        canvas {
+            border: 1px solid black;
+            background-color: #fafafa;
+        }
+        #leaderboard {
+            margin-left: 20px;  /* Space between canvas and leaderboard */
+            border: 1px solid black;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        th, td {
+            padding: 5px 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="leaderboard">
+        <h3>In-Game Leaderboard</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                <!-- In-game leaderboard entries will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let players = [];
+        let enemies = [];
+        let direction = { x: 0, y: 0 };  // Use an object to represent direction
+        const speed = 5;  // Movement speed
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const playerName = urlParams.get('name');  // Get the player's name from the URL
+
+        let socket = new WebSocket(`ws://127.0.0.1:8000/ws/${encodeURIComponent(playerName)}`);
+
+        // When data is received from the server
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.action === "redirect") {
+                window.location.href = data.url;  // Redirect to the index.html page
+            } else {
+                players = data.players;
+                enemies = data.enemies;  // Update the enemies' positions
+                updateLeaderboard();  // Update the leaderboard
+            }
+        };
+
+        function renderGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            players.forEach(player => {
+                ctx.fillStyle = player.color;
+                ctx.fillRect(player.x, player.y, 20, 20);  // Draw player as a square
+                
+                // Render player's name above their square
+                ctx.fillStyle = "black";
+                ctx.font = "14px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(player.name, player.x + 10, player.y - 5);  // Center name above the square
+            });
+
+            enemies.forEach(enemy => {
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, 10, 0, Math.PI * 2);  // Draw enemy as a circle
+                ctx.fillStyle = "red";
+                ctx.fill();
+                ctx.closePath();
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') direction = { x: -speed, y: 0 };  // Move left
+            if (e.key === 'ArrowRight') direction = { x: speed, y: 0 };  // Move right
+            if (e.key === 'ArrowUp') direction = { x: 0, y: -speed };  // Move up
+            if (e.key === 'ArrowDown') direction = { x: 0, y: speed };  // Move down
+        });
+
+        // Update player position and send direction to the server
+        function update() {
+            if (players.length > 0) {  // Check if there are players
+                let player = players[0];  // Assuming you control the first player
+                player.x += direction.x;
+                player.y += direction.y;
+
+                // Boundary checking
+                player.x = Math.max(0, Math.min(canvas.width - 20, player.x));
+                player.y = Math.max(0, Math.min(canvas.height - 20, player.y));
+
+                // Send the current direction to the server
+                socket.send(JSON.stringify({ direction: getDirectionKey(), score: player.score }));
+
+            }
+
+            renderGame();  // Call the render function to draw the game
+            requestAnimationFrame(update);  // Schedule the next update
+        }
+
+        // Helper function to get the current direction as a key
+        function getDirectionKey() {
+            if (direction.x < 0) return 'left';
+            if (direction.x > 0) return 'right';
+            if (direction.y < 0) return 'up';
+            if (direction.y > 0) return 'down';
+            return null;  // No movement
+        }
+
+        // Update the in-game leaderboard based on players' scores
+        function updateLeaderboard() {
+            const leaderboardBody = document.getElementById('leaderboard-body');
+            leaderboardBody.innerHTML = '';  // Clear existing entries
+
+            // Sort players by score in descending order
+            const sortedPlayers = Object.values(players).sort((a, b) => b.score - a.score);
+
+            // Populate the leaderboard
+            sortedPlayers.forEach(player => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${player.name}</td><td>${player.score}</td>`;
+                leaderboardBody.appendChild(row);
+            });
+        }
+
+        // Start the update loop
+        update();
+    </script>
+</body>
+</html>
