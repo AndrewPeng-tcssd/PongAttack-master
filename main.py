@@ -9,7 +9,7 @@ import json
 
 app = FastAPI()
 
-# CORS settings
+# CORS settings 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allows all origins
