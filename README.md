@@ -30,11 +30,11 @@ To install and set up the project locally, follow these steps:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/ElianRenteria/PongAttack.git
+   git clone https://github.com/AndrewPeng-tcssd/PongAttack-master.git
    ```
 2. Navigate to the project directory:
    ```bash
-   cd PongAttack
+   cd PongAttack-master
    ```
 3. Install the necessary dependencies:
    ```bash
@@ -76,4 +76,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contact
 
-For any questions or inquiries, please contact [Elian Renteria](mailto:elianrenteriadevelopment@gmail.com).
+For any questions or inquiries, please contact [Elian Renteria](mailto:elianrenteriadevelopment@gmail.com) [Andrew Peng](mailto:andrewpeng125@gmail.com).
