@@ -1,5 +1,5 @@
 import random
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -9,7 +9,7 @@ import json
 
 app = FastAPI()
 
-# CORS settings 
+# CORS settings
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allows all origins
@@ -99,24 +99,18 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
 
             # Check for collision and redirect player
             if check_collision(players[player_id]):
-                save_score(player_name, players[player_id]["score"])
-                del players[player_id]
-                await websocket.send_text(json.dumps({"action": "redirect", "url": "/index.html"}))
-                await websocket.close()
+                await handle_player_disconnect(player_id, websocket)
                 break
 
             await broadcast_positions()
 
-    except Exception as e:
-        print(f"Error: {e}")
-        if player_id in players:
-            save_score(players[player_id]["name"], players[player_id]["score"])
-            del players[player_id]
-        await websocket.close()
+    except WebSocketDisconnect:
+        await handle_player_disconnect(player_id, websocket)
 
 async def update_score(player_id):
     while player_id in players:
         players[player_id]["score"] += 1
+        await broadcast_positions()
         await asyncio.sleep(1)
 
 async def send_initial_positions(websocket: WebSocket):
@@ -141,9 +135,18 @@ async def broadcast_positions():
             print(f"Error sending data to player: {e}")
 
             # Ensure player is removed if an error occurs
-            save_score(player["name"], player["score"])
-            del players[player["id"]]
+            await handle_player_disconnect(player["id"], player["websocket"])
 
+async def handle_player_disconnect(player_id, websocket):
+    if player_id in players:
+        save_score(players[player_id]["name"], players[player_id]["score"])
+        del players[player_id]
+        try:
+            await websocket.send_text(json.dumps({"action": "redirect", "url": "/index.html"}))
+        except Exception as e:
+            print(f"Error redirecting player: {e}")
+        finally:
+            await websocket.close()
 
 def check_collision(player):
     player_radius = 10
@@ -167,18 +170,16 @@ async def spawn_enemies():
             del enemies[3:]
         await asyncio.sleep(10)
 
-
 def save_score(name, score):
     global all_time_leaderboard
 
     leaderboard_df = pd.read_csv(leaderboard_file)
     if name in leaderboard_df['name'].values:
-        leaderboard_df.loc[leaderboard_df['name'] == name, 'score'] = max(leaderboard_df.loc[leaderboard_df['name'] == name, 'score'], score)
+        leaderboard_df.loc[leaderboard_df['name'] == name, 'score'] = leaderboard_df.loc[leaderboard_df['name'] == name, 'score'].combine(score, max)
     else:
         leaderboard_df = pd.concat([leaderboard_df, pd.DataFrame([{"name": name, "score": score}])], ignore_index=True)
 
     leaderboard_df.to_csv(leaderboard_file, index=False)
-
 
 @app.on_event("startup")
 async def startup_event():
