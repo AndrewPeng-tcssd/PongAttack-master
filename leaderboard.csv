@@ -1,4 +1,6 @@
-name,score,type
-hi,1,all-time
-user2,5,weekly
-user3,2,daily
+name,score
+hi,1
+user2,5
+user3,2
+asdf,0
+hi1,0

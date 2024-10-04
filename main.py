@@ -83,19 +83,24 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
             data = await websocket.receive_text()
             move = json.loads(data)
 
-            if move["direction"] == "left" and players[player_id]["x"] > 0:
+            # Update player's direction
+            if move.get("direction") == "left" and players[player_id]["x"] > 0:
                 players[player_id]["x"] -= 5
-            elif move["direction"] == "right" and players[player_id]["x"] < 780:
+            elif move.get("direction") == "right" and players[player_id]["x"] < 780:
                 players[player_id]["x"] += 5
-            elif move["direction"] == "up" and players[player_id]["y"] > 0:
+            elif move.get("direction") == "up" and players[player_id]["y"] > 0:
                 players[player_id]["y"] -= 5
-            elif move["direction"] == "down" and players[player_id]["y"] < 580:
+            elif move.get("direction") == "down" and players[player_id]["y"] < 580:
                 players[player_id]["y"] += 5
 
+            # Update player's score
+            if "score" in move:
+                players[player_id]["score"] = move["score"]
+
+            # Check for collision and redirect player
             if check_collision(players[player_id]):
                 save_score(player_name, players[player_id]["score"])
                 del players[player_id]
-
                 await websocket.send_text(json.dumps({"action": "redirect", "url": "/index.html"}))
                 await websocket.close()
                 break
@@ -135,6 +140,11 @@ async def broadcast_positions():
         except Exception as e:
             print(f"Error sending data to player: {e}")
 
+            # Ensure player is removed if an error occurs
+            save_score(player["name"], player["score"])
+            del players[player["id"]]
+
+
 def check_collision(player):
     player_radius = 10
     for enemy in enemies:
@@ -146,18 +156,17 @@ def check_collision(player):
 
 async def spawn_enemies():
     while True:
-        print(len(players))
         if len(players) > 0:
             enemies.append({
                 "x": random.randint(100, 500),
                 "y": random.randint(100, 500),
-                "dx": random.randint(-3, 3),
-                "dy": random.randint(-3, 3)
+                "dx": random.choice([-3, -2, 2, 3]),
+                "dy": random.choice([-3, -2, 2, 3])
             })
-            print(f"Enemy spawned. Total enemies: {len(enemies)}")
-        elif len(enemies) > 2:
+        elif len(enemies) > 3:
             del enemies[3:]
         await asyncio.sleep(10)
+
 
 def save_score(name, score):
     global all_time_leaderboard
@@ -166,9 +175,10 @@ def save_score(name, score):
     if name in leaderboard_df['name'].values:
         leaderboard_df.loc[leaderboard_df['name'] == name, 'score'] = max(leaderboard_df.loc[leaderboard_df['name'] == name, 'score'], score)
     else:
-        leaderboard_df = leaderboard_df.append({"name": name, "score": score}, ignore_index=True)
+        leaderboard_df = pd.concat([leaderboard_df, pd.DataFrame([{"name": name, "score": score}])], ignore_index=True)
 
     leaderboard_df.to_csv(leaderboard_file, index=False)
+
 
 @app.on_event("startup")
 async def startup_event():
