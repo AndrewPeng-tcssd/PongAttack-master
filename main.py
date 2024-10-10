@@ -142,7 +142,7 @@ async def handle_player_disconnect(player_id, websocket):
         save_score(players[player_id]["name"], players[player_id]["score"])
         del players[player_id]
         try:
-            await websocket.send_text(json.dumps({"action": "redirect", "url": "/index.html"}))
+            await websocket.send_text(json.dumps({"action": "redirect", "url": "https://coderlab.work/pong"}))
         except Exception as e:
             print(f"Error redirecting player: {e}")
         finally:
