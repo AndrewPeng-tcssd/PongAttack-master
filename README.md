@@ -56,14 +56,17 @@ To install and set up the project locally, follow these steps:
 
 After installation, activate the virtual environment (if not already active) and start the game with the following command:
 
-```bash
 # Activate the virtual environment if not already active
 # On Windows:
+```bash
 venv\Scripts\activate
+```
 # On macOS/Linux:
+```bash
 source venv/bin/activate
-
+```
 # Run the game
+```bash
 python game.py
 ```
 
