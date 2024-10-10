@@ -1,4 +1,3 @@
-
 # PongAttack
 
 **PongAttack** is a project developed by Elian Renteria and Andrew Peng. This repository contains the source code and documentation for a game inspired by the classic Pong, with added features and a modern twist.
@@ -36,17 +35,36 @@ To install and set up the project locally, follow these steps:
    ```bash
    cd PongAttack-master
    ```
-3. Install the necessary dependencies:
+3. Create and activate a virtual environment (recommended):
    ```bash
-   [installation command, e.g., npm install or pip install -r requirements.txt]
+   python -m venv venv
+   ```
+   - On Windows:
+     ```bash
+     venv\Scripts\activate
+     ```
+   - On macOS/Linux:
+     ```bash
+     source venv/bin/activate
+     ```
+4. Install the necessary dependencies:
+   ```bash
+   pip install -r requirements.txt
    ```
 
 ## Usage
 
-After installation, you can start the game with the following command:
+After installation, activate the virtual environment (if not already active) and start the game with the following command:
 
 ```bash
-[command to run the game, e.g., npm start or python game.py]
+# Activate the virtual environment if not already active
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Run the game
+python game.py
 ```
 
 Enjoy the game by following the on-screen instructions.
@@ -77,3 +95,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Contact
 
 For any questions or inquiries, please contact [Elian Renteria](mailto:elianrenteriadevelopment@gmail.com) [Andrew Peng](mailto:andrewpeng125@gmail.com).
+
