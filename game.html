@@ -59,7 +59,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const playerName = urlParams.get('name') || 'Player';
 
-        let socket = new WebSocket(`ws://127.0.0.1:8000/ws/${encodeURIComponent(playerName)}`);
+        let socket = new WebSocket(`https://coderlab.work/ws/${encodeURIComponent(playerName)}`);
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
