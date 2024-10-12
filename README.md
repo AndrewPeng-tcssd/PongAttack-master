@@ -6,8 +6,7 @@
 
 - [Introduction](#introduction)
 - [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
+- [Play](#play)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
@@ -23,54 +22,9 @@ PongAttack is a modern take on the classic Pong game. It includes enhanced gamep
 - Multiplayer support
 - Customizable game settings
 
-## Installation
+## Play
 
-To install and set up the project locally, follow these steps:
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/AndrewPeng-tcssd/PongAttack-master.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd PongAttack-master
-   ```
-3. Create and activate a virtual environment (recommended):
-   ```bash
-   python -m venv venv
-   ```
-   - On Windows:
-     ```bash
-     venv\Scripts\activate
-     ```
-   - On macOS/Linux:
-     ```bash
-     source venv/bin/activate
-     ```
-4. Install the necessary dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Usage
-
-After installation, activate the virtual environment (if not already active) and start the game with the following command:
-
-# Activate the virtual environment if not already active
-# On Windows:
-```bash
-venv\Scripts\activate
-```
-# On macOS/Linux:
-```bash
-source venv/bin/activate
-```
-# Run the game
-```bash
-python game.py
-```
-
-Enjoy the game by following the on-screen instructions.
+Play at https://coderlab.work/pong
 
 ## Contributing
 
@@ -83,7 +37,7 @@ Contributions are welcome! Please follow these steps to contribute:
    ```
 3. Make your changes and commit them:
    ```bash
-   git commit -m 'Add some feature'
+   git commit -m 'YOUR CHANGES'
    ```
 4. Push to the branch:
    ```bash
