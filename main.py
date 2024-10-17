@@ -73,7 +73,7 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
         "name": player_name,
         "score": 0,
         "websocket": websocket,
-        "shield_active": False
+        "shield_active": False  # Start with shield inactive
     }
     asyncio.create_task(update_score(player_id))
 
@@ -81,9 +81,9 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
 
     try:
         while True:
-            print(players)
             data = await websocket.receive_text()
             move = json.loads(data)
+            print("Received data from client:", move)  # Debugging
 
             # Update player's direction
             if move.get("direction") == "left" and players[player_id]["x"] > 0:
@@ -94,15 +94,16 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
                 players[player_id]["y"] -= 5
             elif move.get("direction") == "down" and players[player_id]["y"] < 580:
                 players[player_id]["y"] += 5
+
+            # Update shield state
+            if "shield_active" in move:
+                players[player_id]["shield_active"] = move["shield_active"]
+
             
-            #Shield Logic
+
+            # Update player's score decrement if shield is active
             if players[player_id]["shield_active"]:
                 players[player_id]["score"] -= 1
-
-
-            # Update player's score
-            if "score" in move:
-                players[player_id]["score"] = move["score"]
 
             # Check for collision and redirect player
             if check_collision(players[player_id]):
@@ -113,6 +114,7 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
 
     except WebSocketDisconnect:
         await handle_player_disconnect(player_id, websocket)
+
 
 async def update_score(player_id):
     while player_id in players:
@@ -161,7 +163,7 @@ def check_collision(player):
         enemy_radius = 10
         if (abs((player["x"] + player_radius) - (enemy["x"])) <= (player_radius + enemy_radius) and
             abs((player["y"] + player_radius) - (enemy["y"])) <= (player_radius + enemy_radius)):
-            if player["shield_active"]==False:
+            if player["shield_active"] == False:
                 return True
             else:
                 enemy["dx"] *= -1
