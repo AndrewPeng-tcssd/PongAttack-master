@@ -60,7 +60,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const playerName = urlParams.get('name') || 'Player';
 
-        let socket = new WebSocket(`https://coderlab.work/ws/${encodeURIComponent(playerName)}`); // ws://localhost:8000/ws/${encodeURIComponent(playerName)}
+        let socket = new WebSocket(`https://coderlab.work/ws/${encodeURIComponent(playerName)}`); // ws://localhost:8000/ws/${encodeURIComponent(playerName)} https://coderlab.work/ws/${encodeURIComponent(playerName)}
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
@@ -86,8 +86,8 @@
                 ctx.fillText(player.name, player.x + 10, player.y - 5);
                 if (player.shield_active){
                     ctx.beginPath()
-                    ctx.strokeStyle = "#00FFFF";
-                    ctx.arc(player.x + 10, player.y - 10, 20, 0, 2 * Math.PI)
+                    ctx.strokeStyle = "#0000FF";
+                    ctx.arc(player.x + 10, player.y + 10, 20, 0, 2 * Math.PI)
                     ctx.stroke()
                 }
             });

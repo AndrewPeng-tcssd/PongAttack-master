@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import asyncio
 import json
+import time
 
 app = FastAPI()
 
@@ -80,6 +81,7 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
     await send_initial_positions(websocket)
 
     try:
+        shield_time = 0
         while True:
             data = await websocket.receive_text()
             move = json.loads(data)
@@ -102,11 +104,16 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
             
 
             # Update player's score decrement if shield is active
-            if players[player_id]["shield_active"]:
+            if players[player_id]["shield_active"] and shield_time >= 15:
                 players[player_id]["score"] -= 1
+                shield_time = 0
+            elif players[player_id]["shield_active"]:
+                shield_time += 1
+            else:
+                shield_time = 0
 
             # Check for collision and redirect player
-            if check_collision(players[player_id]):
+            if check_collision(players[player_id]) or players[player_id]["score"] < 0:
                 await handle_player_disconnect(player_id, websocket)
                 break
 
@@ -163,7 +170,7 @@ def check_collision(player):
         enemy_radius = 10
         if (abs((player["x"] + player_radius) - (enemy["x"])) <= (player_radius + enemy_radius) and
             abs((player["y"] + player_radius) - (enemy["y"])) <= (player_radius + enemy_radius)):
-            if player["shield_active"] == False:
+            if player["shield_active"] == False and player["score"] > 1:
                 return True
             else:
                 enemy["dx"] *= -1
