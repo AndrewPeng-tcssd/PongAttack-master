@@ -83,7 +83,7 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
         while True:
             data = await websocket.receive_text()
             move = json.loads(data)
-            print("Received data from client:", move)  # Debugging
+            # print("Received data from client:", move)  # Debugging
 
             # Update player's direction
             if move.get("direction") == "left" and players[player_id]["x"] > 0:
