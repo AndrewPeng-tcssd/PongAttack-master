@@ -34,7 +34,7 @@ async def send_leaderboard():
     top_10 = leaderboard_df.sort_values(by="score", ascending=False).head(10).to_dict(orient="records")
     return JSONResponse(content={"all_time": top_10})
 
-# Initialize global variables
+# Initialize global variable
 players = {}
 enemies = [
     {"x": 200, "y": 200, "dx": 2, "dy": 2},
@@ -72,7 +72,8 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
         "color": random_color(),
         "name": player_name,
         "score": 0,
-        "websocket": websocket
+        "websocket": websocket,
+        "shield_active": False  # Start with shield inactive
     }
     asyncio.create_task(update_score(player_id))
 
@@ -82,6 +83,7 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
         while True:
             data = await websocket.receive_text()
             move = json.loads(data)
+            # print("Received data from client:", move)  # Debugging
 
             # Update player's direction
             if move.get("direction") == "left" and players[player_id]["x"] > 0:
@@ -93,9 +95,15 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
             elif move.get("direction") == "down" and players[player_id]["y"] < 580:
                 players[player_id]["y"] += 5
 
-            # Update player's score
-            if "score" in move:
-                players[player_id]["score"] = move["score"]
+            # Update shield state
+            if "shield_active" in move:
+                players[player_id]["shield_active"] = move["shield_active"]
+
+            
+
+            # Update player's score decrement if shield is active
+            if players[player_id]["shield_active"]:
+                players[player_id]["score"] -= 1
 
             # Check for collision and redirect player
             if check_collision(players[player_id]):
@@ -107,6 +115,7 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
     except WebSocketDisconnect:
         await handle_player_disconnect(player_id, websocket)
 
+
 async def update_score(player_id):
     while player_id in players:
         players[player_id]["score"] += 1
@@ -115,7 +124,7 @@ async def update_score(player_id):
 
 async def send_initial_positions(websocket: WebSocket):
     safe_players = [
-        {"x": player["x"], "y": player["y"], "color": player["color"], "name": player["name"], "score": player["score"]}
+        {"x": player["x"], "y": player["y"], "color": player["color"], "name": player["name"], "score": player["score"], "shield_active": player["shield_active"]}
         for player in players.values()
     ]
     data = json.dumps({"players": safe_players, "enemies": enemies})
@@ -123,7 +132,7 @@ async def send_initial_positions(websocket: WebSocket):
 
 async def broadcast_positions():
     safe_players = [
-        {"x": player["x"], "y": player["y"], "color": player["color"], "name": player["name"], "score": player["score"]}
+        {"x": player["x"], "y": player["y"], "color": player["color"], "name": player["name"], "score": player["score"], "shield_active": player["shield_active"]}
         for player in players.values()
     ]
     data = json.dumps({"players": safe_players, "enemies": enemies})
@@ -154,7 +163,11 @@ def check_collision(player):
         enemy_radius = 10
         if (abs((player["x"] + player_radius) - (enemy["x"])) <= (player_radius + enemy_radius) and
             abs((player["y"] + player_radius) - (enemy["y"])) <= (player_radius + enemy_radius)):
-            return True
+            if player["shield_active"] == False:
+                return True
+            else:
+                enemy["dx"] *= -1
+                enemy["dy"] *= -1
     return False
 
 async def spawn_enemies():

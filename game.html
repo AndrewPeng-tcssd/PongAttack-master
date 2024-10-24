@@ -55,11 +55,12 @@
         let enemies = [];
         let direction = { x: 0, y: 0 };
         const speed = 5;
+        let shield = false
 
         const urlParams = new URLSearchParams(window.location.search);
         const playerName = urlParams.get('name') || 'Player';
 
-        let socket = new WebSocket(`https://coderlab.work/ws/${encodeURIComponent(playerName)}`);
+        let socket = new WebSocket(`https://coderlab.work/ws/${encodeURIComponent(playerName)}`); // ws://localhost:8000/ws/${encodeURIComponent(playerName)}
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
@@ -83,6 +84,12 @@
                 ctx.font = "14px Arial";
                 ctx.textAlign = "center";
                 ctx.fillText(player.name, player.x + 10, player.y - 5);
+                if (player.shield_active){
+                    ctx.beginPath()
+                    ctx.strokeStyle = "#00FFFF";
+                    ctx.arc(player.x, player.y, 20, 0, 2 * Math.PI)
+                    ctx.stroke()
+                }
             });
 
             enemies.forEach(enemy => {
@@ -99,6 +106,11 @@
             if (e.key === 'ArrowRight') direction = { x: speed, y: 0 };
             if (e.key === 'ArrowUp') direction = { x: 0, y: -speed };
             if (e.key === 'ArrowDown') direction = { x: 0, y: speed };
+            if (e.key === " ") shield = true;
+        });
+
+        document.addEventListener('keyup', function(e) {
+            if (e.key === " ") shield = false;  // Reset the shield when the space bar is released
         });
 
         function update() {
@@ -113,7 +125,8 @@
                     player.x = Math.max(0, Math.min(canvas.width - 20, player.x));
                     player.y = Math.max(0, Math.min(canvas.height - 20, player.y));
 
-                    socket.send(JSON.stringify({ direction: getDirectionKey(), score: player.score }));
+                    socket.send(JSON.stringify({ direction: getDirectionKey(), score: player.score, shield_active: shield}));
+
                 }
             }
 
