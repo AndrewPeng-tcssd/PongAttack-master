@@ -155,7 +155,7 @@ async def broadcast_positions():
 
 async def handle_player_disconnect(player_id, websocket):
     if player_id in players:
-        save_score(players[player_id]["name"], players[player_id]["score"])
+        save_score(players[player_id]["name"], players[player_id]["score"], players[player_id]["id"])
         del players[player_id]
         try:
             await websocket.send_text(json.dumps({"action": "redirect", "url": "https://coderlab.work/pong"}))
@@ -190,11 +190,11 @@ async def spawn_enemies():
             del enemies[3:]
         await asyncio.sleep(10)
 
-def save_score(name, score):
-    global all_time_leaderboard
+def save_score(name, score, player_id):
+    global all_time_leaderboard, players
 
     leaderboard_df = pd.read_csv(leaderboard_file)
-    if name in leaderboard_df['name'].values:
+    if name in leaderboard_df['name'].values and players[player_id]["score"] > 0:
         leaderboard_df.loc[leaderboard_df['name'] == name, 'score'] = leaderboard_df.loc[leaderboard_df['name'] == name, 'score'].combine(score, max)
     else:
         leaderboard_df = pd.concat([leaderboard_df, pd.DataFrame([{"name": name, "score": score}])], ignore_index=True)
