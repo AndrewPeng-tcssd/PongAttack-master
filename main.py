@@ -6,7 +6,6 @@ import os
 import pandas as pd
 import asyncio
 import json
-import time
 
 app = FastAPI()
 
@@ -81,7 +80,6 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
     await send_initial_positions(websocket)
 
     try:
-        shield_time = 0
         while True:
             data = await websocket.receive_text()
             move = json.loads(data)
