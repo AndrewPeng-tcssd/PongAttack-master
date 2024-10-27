@@ -155,7 +155,8 @@ async def broadcast_positions():
 
 async def handle_player_disconnect(player_id, websocket):
     if player_id in players:
-        save_score(players[player_id]["name"], players[player_id]["score"])
+        if players[player_id]["score"] > 0:
+            save_score(players[player_id]["name"], players[player_id]["score"])
         del players[player_id]
         try:
             await websocket.send_text(json.dumps({"action": "redirect", "url": "https://coderlab.work/pong"}))
