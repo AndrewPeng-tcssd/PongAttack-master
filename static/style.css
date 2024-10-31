@@ -34,6 +34,16 @@ th {
     font-size: 16px;
     cursor: pointer;
 }
+#about {
+    margin-top: 15px;
+    padding: 6px 12px;
+    background-color: #c1da00;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+}
 #joinGame {
     margin-top: 30px;
     padding: 10px 20px;
