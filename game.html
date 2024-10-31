@@ -4,31 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PongAttack</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        canvas {
-            border: 1px solid black;
-            background-color: #fafafa;
-        }
-        #leaderboard {
-            margin-left: 20px;
-            border: 1px solid black;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-        }
-        th, td {
-            padding: 5px 10px;
-            text-align: left;
-        }
-    </style>
+    <link rel="stylesheet" href="static/game.css">
 </head>
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -110,7 +86,7 @@
         });
 
         document.addEventListener('keyup', function(e) {
-            if (e.key === " ") shield = false;  // Reset the shield when the space bar is released
+            if (e.key === " ") shield = false;  // reset the shield when the space bar is released
         });
 
         function update() {
