@@ -9,13 +9,13 @@ import json
 
 app = FastAPI()
 
-# CORS settings
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"], 
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],  
+    allow_headers=["*"], 
 )
 
 leaderboard_file = "leaderboard.csv"
@@ -34,7 +34,7 @@ async def send_leaderboard():
     top_10 = leaderboard_df.sort_values(by="score", ascending=False).head(10).to_dict(orient="records")
     return JSONResponse(content={"all_time": top_10})
 
-# Initialize global variable
+# Initialize global variables
 players = {}
 enemies = [
     {"x": 200, "y": 200, "dx": 2, "dy": 2},

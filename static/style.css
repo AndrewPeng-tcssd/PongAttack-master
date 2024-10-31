@@ -8,6 +8,9 @@ body {
 h1 {
     margin-bottom: 20px;
 }
+small {
+    color: #ff0000
+}
 table {
     width: 300px;
     margin: 10px;
