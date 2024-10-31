@@ -34,6 +34,9 @@ th {
     font-size: 16px;
     cursor: pointer;
 }
+#help:hover {
+    background-color: #178700;
+}
 #about {
     margin-top: 15px;
     padding: 6px 12px;
@@ -43,6 +46,9 @@ th {
     border-radius: 5px;
     font-size: 14px;
     cursor: pointer;
+}
+#about:hover {
+    background-color: #8b9d00;
 }
 #joinGame {
     margin-top: 30px;
