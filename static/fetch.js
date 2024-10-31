@@ -19,14 +19,14 @@ function updateLeaderboard(elementId, leaderboardData) {
 // Fetch leaderboards when the page loads
 fetchLeaderboards();
 
-// Reload leaderboards every 10 seconds
+// Reload leaderboards every 10000 miliseconds (10 seconds)
 setInterval(fetchLeaderboards, 10000);
 
-// Handle the Join Game button
+// Join Game button
 document.getElementById('joinGame').addEventListener('click', function() {
     const playerName = prompt("Enter your name:");
     if (playerName) {
-        // Redirect to the game page with the player's name in the query string
+        // Redirect to the game
         window.location.href = `game.html?name=${encodeURIComponent(playerName)}`;
     }
 });

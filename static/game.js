@@ -3,7 +3,7 @@ const canvas = document.getElementById('gameCanvas'); // Get the game canvas
 const ctx = canvas.getContext('2d'); // Get the 2D context for drawing on the canvas
 
 let players = []; // Array to hold player dada
-let enemies = []; // Array to hold enemy data
+let enemies = []; // array to hold enemy data
 let direction = { x: 0, y: 0 }; // player direction
 const speed = 5;
 let shield = false; 
@@ -25,7 +25,7 @@ socket.onmessage = function(event) {
         // Update data
         players = data.players;
         enemies = data.enemies;
-        updateLeaderboard(); // Update leaderboard
+        updateLeaderboard(); // update leaderboard
     }
 };
 
@@ -37,12 +37,12 @@ function renderGame() {
     players.forEach(player => {
         ctx.fillStyle = player.color; // color (random)
         ctx.fillRect(player.x, player.y, 20, 20); // Draw player as a square
-        ctx.fillStyle = "black"; // Set color for the text for the player's name
-        ctx.font = "14px Arial"; // text font
+        ctx.fillStyle = "black"; // Set color(black) for the text for the player's name
+        ctx.font = "14px Arial"; // text font and size (14pixels Arial)
         ctx.textAlign = "center"; // center the name
-        ctx.fillText(player.name, player.x + 10, player.y - 5); // Render player's name above itself
+        ctx.fillText(player.name, player.x + 10, player.y - 5); // Render player name
         if (player.shield_active) {
-            // Draw a shield around the player if it's activated
+            // draw a shield around the player if it's activated
             ctx.beginPath();
             ctx.strokeStyle = "#0000FF"; // color blue
             ctx.arc(player.x + 10, player.y + 10, 20, 0, 2 * Math.PI); // circle
@@ -85,7 +85,7 @@ function update() {
             player.x += direction.x;
             player.y += direction.y;
 
-            // Ensure the player stays within the canvas boundaries or it will disappear
+            // Ensure the player stays within the canvas
             player.x = Math.max(0, Math.min(canvas.width - 20, player.x));
             player.y = Math.max(0, Math.min(canvas.height - 20, player.y));
 

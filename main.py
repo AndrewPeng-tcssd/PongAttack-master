@@ -110,7 +110,7 @@ async def websocket_endpoint(websocket: WebSocket, player_name: str):
             else:
                 shield_time = 0
 
-            # Check for collision and redirect player
+            #Check for collision and redirect player
             if check_collision(players[player_id]) or players[player_id]["score"] < 0:
                 await handle_player_disconnect(player_id, websocket)
                 break
@@ -148,7 +148,6 @@ async def broadcast_positions():
         except Exception as e:
             print(f"Error sending data to player: {e}")
 
-            # Ensure player is removed if an error occurs
             await handle_player_disconnect(player["id"], player["websocket"])
 
 async def handle_player_disconnect(player_id, websocket):

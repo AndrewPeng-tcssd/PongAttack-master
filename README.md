@@ -33,7 +33,7 @@ Contributions are welcome! Please follow these steps to contribute:
 1. Fork the repository.
 2. Create a new branch:
    ```bash
-   git checkout -b feature-branch
+   git checkout -b your-branch
    ```
 3. Make your changes and commit them:
    ```bash
@@ -41,7 +41,7 @@ Contributions are welcome! Please follow these steps to contribute:
    ```
 4. Push to the branch:
    ```bash
-   git push origin feature-branch
+   git push origin your-branch
    ```
 5. Create a pull request.
 
@@ -51,5 +51,5 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contact
 
-For any questions or inquiries, please contact [Elian Renteria](mailto:elianrenteriadevelopment@gmail.com) [Andrew Peng](mailto:andrewpeng125@gmail.com).
+For any questions or inquiries, please contact [Elian Renteria](mailto:elianrenteriadevelopment@gmail.com) or [Andrew Peng](mailto:andrewpeng125@gmail.com).
 
